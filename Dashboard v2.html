@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        /* Basic styling for the page */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        /* Header for title and controls */
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+            padding-top: 80px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            width: 100%;
+            text-align: center;
+        }
+        #last-updated {
+            font-size: 0.9em;
+            color: #888;
+            font-weight: 500;
+            width: 100%;
+            text-align: right;
+        }
+        /* The main dashboard container */
+        .dashboard {
+            max-width: 1200px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        /* Container for the KPI scorecards */
+        .scorecard-container {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        /* Individual KPI scorecard */
+        .scorecard {
+            flex: 1;
+            background-color: #f5f5f5;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            min-width: 200px;
+        }
+        .scorecard-title {
+            font-size: 1em;
+            color: #666;
+            margin: 0 0 10px 0;
+        }
+        .scorecard-value {
+            font-size: 2.5em;
+            font-weight: 600;
+            color: #d9a507;
+        }
+        /* Container for multi-column card layouts */
+        .card-grid-container {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        /* Container for the main charts/tables */
+        .chart-container {
+            background-color: #f5f5f5;
+            border-radius: 15px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin: 0;
+        }
+        .chart-content {
+            overflow-y: auto;
+            flex-grow: 1;
+            position: relative; /* For chart responsiveness */
+        }
+        .fixed-height-card {
+            height: 400px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th, .data-table td {
+            text-align: left;
+            padding: 12px 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .data-table th {
+            font-weight: 600;
+            color: #555;
+        }
+        .date-nav-buttons button {
+            background: #e0e0e0;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .date-nav-buttons button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .date-display {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 500;
+        }
+        .daily-sales-total {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #d9a507;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Apple empire inventory Dashboard</h1>
+        <span id="last-updated">Loading...</span>
+    </div>
+
+    <div class="dashboard">
+        <div class="scorecard-container">
+            <div class="scorecard" id="total-devices-card"><p class="scorecard-title">Total Devices (Live)</p><h2 class="scorecard-value"><div class="loader"></div></h2></div>
+            <div class="scorecard" id="total-gadgets-card"><p class="scorecard-title">Total Gadgets (Live)</p><h2 class="scorecard-value"><div class="loader"></div></h2></div>
+            <div class="scorecard" id="weekly-sales-card"><p class="scorecard-title">Past 7 Days</p><h2 class="scorecard-value"><div class="loader"></div></h2></div>
+            <div class="scorecard" id="monthly-sales-card"><p class="scorecard-title">Past 30 Days</p><h2 class="scorecard-value"><div class="loader"></div></h2></div>
+        </div>
+
+        <div class="card-grid-container">
+            <div class="chart-container fixed-height-card" id="daily-sales-container">
+                <div class="chart-header">
+                    <div>
+                        <h3 class="chart-title">Daily Sales Preview</h3>
+                        <div style="display: flex; align-items: center;">
+                             <span class="date-display" id="date-display-label">Today</span>
+                             <span class="daily-sales-total" id="daily-sales-total-label"></span>
+                        </div>
+                    </div>
+                    <div class="date-nav-buttons">
+                        <button id="prev-day-btn">&lt; Prev</button>
+                        <button id="next-day-btn">Next &gt;</button>
+                    </div>
+                </div>
+                <div class="chart-content" id="daily-sales-content"><div class="loader"></div></div>
+            </div>
+            <div class="chart-container fixed-height-card" id="low-stock-container">
+                 <div class="chart-header">
+                    <h3 class="chart-title">Low Stock Alert</h3>
+                </div>
+                <div class="chart-content" id="low-stock-content"><div class="loader"></div></div>
+            </div>
+        </div>
+        
+        <!-- NEW: Sales Performance Section -->
+        <div class="card-grid-container">
+             <div class="chart-container fixed-height-card">
+                <h3 class="chart-title">Sales by Brand</h3>
+                <div class="chart-content">
+                    <canvas id="sales-by-brand-chart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container fixed-height-card">
+                <h3 class="chart-title">Busiest Day of the Week</h3>
+                <div class="chart-content">
+                    <canvas id="busiest-day-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: Inventory Insights Section -->
+        <div class="chart-container fixed-height-card">
+            <h3 class="chart-title">Inventory Age Alert (Over 30 Days)</h3>
+            <div class="chart-content" id="inventory-age-content"><div class="loader"></div></div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const API_KEY = 'AIzaSyDkZ8Ujjpho0ffbVNh4I4SMt2InOGSqMIs';
+        const SHEET_ID = '1czXUeQRbv5JJR10RZWACCjJijGXiRBG-v1DhkI2Vnt0';
+        const DATE_FORMAT = 'MM/DD/YYYY';
+        const REFRESH_INTERVAL_SECONDS = 300;
+
+        const RANGES = {
+            devices: 'Devices!A:H', // Assuming Date Added is in Column H
+            gadgets: 'Gadgets!A:D', 
+            sales: 'Sales!A:G'      
+        };
+        
+        let salesDataCache = [], devicesDataCache = [], gadgetsDataCache = [];
+        let currentDateOffset = 0;
+        let salesByBrandChart, busiestDayChart;
+
+        async function fetchSheetData(range) {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                return data.values || [];
+            } catch (error) {
+                console.error(`Error fetching data for range ${range}:`, error);
+                return null;
+            }
+        }
+        
+        function parseDate(dateString) {
+            if (!dateString) return null;
+            const parts = dateString.split(/[\/\-]/);
+            if (parts.length !== 3) return null;
+            let day, month, year;
+            if (DATE_FORMAT === 'MM/DD/YYYY') {
+                month = parseInt(parts[0], 10) - 1;
+                day = parseInt(parts[1], 10);
+                year = parseInt(parts[2], 10);
+            } else {
+                day = parseInt(parts[0], 10);
+                month = parseInt(parts[1], 10) - 1;
+                year = parseInt(parts[2], 10);
+            }
+            if (year < 100) year += 2000;
+            const date = new Date(Date.UTC(year, month, day));
+            if (isNaN(date.getTime()) || date.getUTCDate() !== day || date.getUTCMonth() !== month || date.getUTCFullYear() !== year) {
+                return null;
+            }
+            return date;
+        }
+
+        function updateDashboardWithData() {
+            // --- Live KPI calculations ---
+            const totalDevices = devicesDataCache.slice(1).filter(row => row && row[0]).length;
+            const totalGadgets = gadgetsDataCache.slice(1).reduce((sum, row) => sum + (parseInt(row[3], 10) || 0), 0);
+            document.querySelector('#total-devices-card .scorecard-value').innerHTML = totalDevices;
+            document.querySelector('#total-gadgets-card .scorecard-value').innerHTML = totalGadgets;
+
+            // --- Date Range Calculations ---
+            const today = new Date(); today.setUTCHours(0,0,0,0);
+            const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7); sevenDaysAgo.setUTCHours(0,0,0,0);
+            const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30); thirtyDaysAgo.setUTCHours(0,0,0,0);
+            
+            let weeklySalesCount = 0;
+            let monthlySalesCount = 0;
+            salesDataCache.slice(1).forEach(row => {
+                const saleDate = parseDate(row[6]);
+                if (!saleDate) return;
+                if (saleDate >= sevenDaysAgo && saleDate <= today) weeklySalesCount++;
+                if (saleDate >= thirtyDaysAgo && saleDate <= today) monthlySalesCount++;
+            });
+            document.querySelector('#weekly-sales-card .scorecard-value').innerHTML = weeklySalesCount;
+            document.querySelector('#monthly-sales-card .scorecard-value').innerHTML = monthlySalesCount;
+            
+            // --- Static Component Renders ---
+            renderLowStockTable();
+            renderInventoryAgeTable();
+            
+            // --- Chart Renders ---
+            renderDailySales();
+            renderSalesByBrandChart();
+            renderBusiestDayChart();
+
+            document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+        }
+        
+        function renderLowStockTable() {
+            const modelStock = {};
+            devicesDataCache.slice(1).forEach(row => {
+                const model = row[1];
+                if (model) modelStock[model] = (modelStock[model] || 0) + 1;
+            });
+            const lowStockModels = Object.entries(modelStock).filter(([model, count]) => count <= 2);
+            const lowStockContainer = document.getElementById('low-stock-content');
+            if (lowStockModels.length > 0) {
+                let tableHTML = '<table class="data-table"><tr><th>Model</th><th>Current Stock</th></tr>';
+                lowStockModels.forEach(([model, count]) => tableHTML += `<tr><td>${model}</td><td>${count}</td></tr>`);
+                lowStockContainer.innerHTML = tableHTML + '</table>';
+            } else {
+                lowStockContainer.innerHTML = '<p>No models are low on stock.</p>';
+            }
+        }
+
+        function renderInventoryAgeTable() {
+            const container = document.getElementById('inventory-age-content');
+            const thirtyDaysAgo = new Date(); // UPDATED
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30); // UPDATED to 30
+
+            const agedStock = devicesDataCache.slice(1).filter(row => {
+                if (!row[7]) return false; // Check if date added exists in Col H
+                const dateAdded = parseDate(row[7]);
+                return dateAdded && dateAdded < thirtyDaysAgo; // UPDATED
+            });
+
+            if (agedStock.length > 0) {
+                let tableHTML = '<table class="data-table"><tr><th>Model</th><th>Barcode</th><th>Days in Stock</th></tr>';
+                agedStock.forEach(row => {
+                    const model = row[1];
+                    const barcode = row[0];
+                    const dateAdded = parseDate(row[7]);
+                    const daysInStock = Math.floor((new Date() - dateAdded) / (1000 * 60 * 60 * 24));
+                    tableHTML += `<tr><td>${model}</td><td>${barcode}</td><td>${daysInStock}</td></tr>`;
+                });
+                container.innerHTML = tableHTML + '</table>';
+            } else {
+                container.innerHTML = '<p>No aging inventory found. Good job!</p>';
+            }
+        }
+        
+        function renderSalesByBrandChart() {
+            const brandSales = {};
+            salesDataCache.slice(1).forEach(row => {
+                const productInfo = row[2]; // Column C
+                if (productInfo) {
+                    const brand = productInfo.split(' ')[0]; // Assume first word is the brand
+                    brandSales[brand] = (brandSales[brand] || 0) + 1;
+                }
+            });
+
+            const chartData = {
+                labels: Object.keys(brandSales),
+                datasets: [{
+                    label: 'Sales',
+                    data: Object.values(brandSales),
+                    backgroundColor: ['#d9a507', '#a9a9a9', '#f0e68c', '#bdb76b', '#e6be8a'],
+                }]
+            };
+
+            const ctx = document.getElementById('sales-by-brand-chart').getContext('2d');
+            if(salesByBrandChart) salesByBrandChart.destroy();
+            salesByBrandChart = new Chart(ctx, {
+                type: 'pie',
+                data: chartData,
+                options: { maintainAspectRatio: false }
+            });
+        }
+
+        function renderBusiestDayChart() {
+            const dayCounts = new Array(7).fill(0); // 0 = Sunday, 1 = Monday...
+            salesDataCache.slice(1).forEach(row => {
+                const saleDate = parseDate(row[6]);
+                if(saleDate) {
+                    dayCounts[saleDate.getUTCDay()]++;
+                }
+            });
+
+            const chartData = {
+                labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                datasets: [{
+                    label: 'Sales Count',
+                    data: dayCounts,
+                    backgroundColor: '#d9a507'
+                }]
+            };
+
+            const ctx = document.getElementById('busiest-day-chart').getContext('2d');
+            if(busiestDayChart) busiestDayChart.destroy();
+            busiestDayChart = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: { maintainAspectRatio: false, indexAxis: 'y' }
+            });
+        }
+
+        function renderDailySales() {
+            const container = document.getElementById('daily-sales-content');
+            const dateLabel = document.getElementById('date-display-label');
+            const totalLabel = document.getElementById('daily-sales-total-label');
+            const prevBtn = document.getElementById('prev-day-btn');
+            const nextBtn = document.getElementById('next-day-btn');
+            
+            const targetDate = new Date();
+            targetDate.setUTCDate(targetDate.getUTCDate() + currentDateOffset);
+            targetDate.setUTCHours(0,0,0,0);
+
+            if (currentDateOffset === 0) dateLabel.textContent = "Today";
+            else if (currentDateOffset === -1) dateLabel.textContent = "Yesterday";
+            else dateLabel.textContent = targetDate.toLocaleDateString();
+            
+            const dailySales = salesDataCache.slice(1).filter(row => {
+                const saleDate = parseDate(row[6]);
+                if (!saleDate) return false;
+                saleDate.setUTCHours(0,0,0,0);
+                return saleDate.getTime() === targetDate.getTime();
+            });
+
+            totalLabel.textContent = `(${dailySales.length} sales)`;
+
+            if (dailySales.length > 0) {
+                let tableHTML = '<table class="data-table"><tr><th>Product Info</th><th>Customer</th></tr>';
+                dailySales.forEach(row => {
+                    const productInfo = row[2] || 'N/A';
+                    const customer = row[3] || 'N/A';
+                    tableHTML += `<tr><td>${productInfo}</td><td>${customer}</td></tr>`;
+                });
+                container.innerHTML = tableHTML + '</table>';
+            } else {
+                container.innerHTML = '<p>No sales recorded for this day.</p>';
+            }
+            prevBtn.disabled = currentDateOffset <= -6;
+            nextBtn.disabled = currentDateOffset >= 0;
+        }
+
+        async function initializeDashboard() {
+            document.getElementById('prev-day-btn').addEventListener('click', () => { if (currentDateOffset > -6) { currentDateOffset--; renderDailySales(); } });
+            document.getElementById('next-day-btn').addEventListener('click', () => { if (currentDateOffset < 0) { currentDateOffset++; renderDailySales(); } });
+
+            console.log("Initializing dashboard...");
+            await refreshData();
+        
+            setInterval(refreshData, REFRESH_INTERVAL_SECONDS * 1000);
+        }
+
+        async function refreshData() {
+             console.log("Refreshing data...");
+             [devicesDataCache, gadgetsDataCache, salesDataCache] = await Promise.all([
+                fetchSheetData(RANGES.devices),
+                fetchSheetData(RANGES.gadgets),
+                fetchSheetData(RANGES.sales)
+            ]);
+            updateDashboardWithData();
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+    </script>
+</body>
+</html>
+
