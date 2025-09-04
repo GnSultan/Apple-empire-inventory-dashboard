@@ -24,6 +24,16 @@
             --shadow-hover-subtle: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
 
+        .light-mode {
+            --glass: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.7);
+            --text-primary: #2c3e50;
+            --text-secondary: #5a6878;
+            --bg-primary: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --shadow-subtle: 0 4px 25px 0 rgba(0, 0, 0, 0.08);
+            --shadow-hover-subtle: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -36,6 +46,7 @@
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         /* Animated Background */
@@ -50,7 +61,57 @@
             background-size: 100% 100%;
             z-index: -1;
             animation: float 20s ease-in-out infinite;
+            transition: opacity 0.3s ease;
         }
+        
+        /* Background Decor for Light Mode Glassmorphism */
+        .background-decor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .light-mode .background-decor {
+            opacity: 1;
+        }
+
+        .background-decor::before,
+        .background-decor::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: drift 30s ease-in-out infinite alternate;
+        }
+
+        .background-decor::before {
+            width: 350px;
+            height: 350px;
+            background-color: rgba(102, 126, 234, 0.3);
+            top: 5%;
+            left: 10%;
+        }
+
+        .background-decor::after {
+            width: 400px;
+            height: 400px;
+            background-color: rgba(240, 147, 251, 0.3);
+            bottom: 5%;
+            right: 10%;
+            animation-direction: alternate-reverse;
+            animation-duration: 40s;
+        }
+        
+        @keyframes drift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(40px, 60px) rotate(20deg); }
+        }
+
 
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -59,8 +120,9 @@
 
         /* Plain Header */
         .header {
-            margin: 20px;
-            padding: 30px;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 30px 20px;
             padding-bottom: 80px;
             text-align: center;
             position: relative;
@@ -69,22 +131,114 @@
         .header h1 {
             font-size: 2.5em;
             font-weight: 700;
-            color: white;
+            color: var(--text-primary);
             margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: inline-block;
+        }
+        
+        .header-controls {
+            position: absolute;
+            top: 40px;
+            right: 20px;
+            z-index: 10;
         }
 
+        #theme-toggle {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        #theme-toggle:hover {
+             background: rgba(255,255,255,0.2);
+        }
+
+        .light-mode #theme-toggle:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        
+        .theme-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            box-shadow: var(--shadow-subtle);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            transform-origin: top right;
+        }
+        
+        .theme-menu.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        .theme-menu button {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95em;
+            text-align: left;
+            transition: background 0.2s ease;
+        }
+
+        .theme-menu button:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .light-mode .theme-menu button:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        .theme-menu button.active {
+            background: rgba(0,0,0,0.1);
+            font-weight: 600;
+        }
+        
+        .light-mode .theme-menu button.active {
+             background: rgba(0,0,0,0.1);
+        }
+
+        .theme-menu button i {
+            width: 16px;
+        }
+
+
         .header-subtitle {
-            color: rgba(255,255,255,0.9);
+            color: var(--text-secondary);
             font-size: 1.1em;
             font-weight: 300;
         }
 
+        /*
         .last-updated {
             position: absolute;
             top: 20px;
-            right: 30px;
-            color: rgba(255,255,255,0.8);
+            left: 30px; 
+            color: var(--text-secondary);
             font-size: 0.9em;
             display: flex;
             align-items: center;
@@ -103,6 +257,7 @@
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.5; transform: scale(1.2); }
         }
+        */
         
         /* Main Dashboard */
         .dashboard {
@@ -116,23 +271,26 @@
         /* KPI Cards */
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
-            align-items: start; /* CRITICAL: Prevents cards from stretching vertically */
+            align-items: stretch; 
         }
 
         .kpi-card {
             background: var(--glass);
             backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             padding: 30px;
             position: relative;
-            overflow: hidden;
+            overflow: hidden; 
             transition: all 0.3s ease;
             box-shadow: var(--shadow-subtle);
+            display: flex;
+            flex-direction: column;
         }
-
+        
         .kpi-card:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-hover-subtle);
@@ -146,7 +304,7 @@
         }
 
         .kpi-title {
-            color: rgba(255,255,255,0.9);
+            color: var(--text-secondary);
             font-size: 0.95em;
             font-weight: 600;
             text-transform: uppercase;
@@ -154,14 +312,14 @@
         }
         
         .kpi-icon {
-            color: white;
+            color: var(--text-primary);
             font-size: 1.5em;
         }
 
         .kpi-value {
             font-size: 2.8em;
             font-weight: 700;
-            color: white;
+            color: var(--text-primary);
             margin-bottom: 10px;
             text-shadow: none;
             min-height: 50px;
@@ -172,57 +330,53 @@
             align-items: center;
             gap: 8px;
             font-size: 0.9em;
-            color: rgba(255,255,255,0.8);
+            color: var(--text-secondary);
         }
 
         .trend-up { color: #43e97b; }
         .trend-down { color: #fa709a; }
+        
+        .light-mode .trend-up { color: #27ae60; }
+        .light-mode .trend-down { color: #c0392b; }
 
-        /* UPDATED: Expandable Card Styles for Seamless Expansion */
-        .expandable-card {
-            cursor: pointer;
-        }
-        .devices-detail {
-            display: none;
+        .expandable-detail {
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid var(--glass-border);
             max-height: 300px;
             overflow-y: auto;
+            flex-grow: 1;
         }
-        .devices-detail.show {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; max-height: 0; }
-            to { opacity: 1; max-height: 300px; }
-        }
-        .device-item {
+        .detail-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px 5px;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid var(--glass-border);
         }
-        .device-item:last-child {
+        .detail-item:last-child {
             border-bottom: none;
         }
-        .device-model {
+        .item-name {
             font-weight: 500;
-            color: white;
+            color: var(--text-primary);
         }
-        .device-count {
-            background: rgba(255,255,255,0.1);
+        .item-count {
+            background: rgba(0,0,0,0.08);
             padding: 4px 10px;
             border-radius: 12px;
             font-weight: 600;
-            color: white;
+            color: var(--text-primary);
             font-size: 0.9em;
         }
-        .low-stock-indicator {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            color: #2c3e50;
+        .kpi-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            justify-content: space-between;
+        }
+        .kpi-column .kpi-card {
+            flex: 1;
         }
 
         /* Chart Containers */
@@ -236,6 +390,7 @@
         .chart-container {
             background: var(--glass);
             backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             padding: 25px;
@@ -262,7 +417,7 @@
         .chart-title {
             font-size: 1.3em;
             font-weight: 600;
-            color: white;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -272,7 +427,7 @@
             font-size: 0.8em;
             font-weight: 500;
             color: var(--text-secondary);
-            background: rgba(0,0,0,0.15);
+            background: rgba(0,0,0,0.08);
             padding: 3px 8px;
             border-radius: 8px;
             margin-left: 10px;
@@ -289,14 +444,14 @@
             border: 1px solid var(--glass-border);
             border-radius: 10px;
             padding: 8px 15px;
-            color: white;
+            color: var(--text-primary);
             cursor: pointer;
             font-size: 0.9em;
             transition: all 0.3s ease;
         }
         
         .btn:hover:not(:disabled) {
-             background: rgba(255,255,255,0.2);
+             background: rgba(0,0,0,0.1);
         }
 
         .btn:disabled {
@@ -325,7 +480,7 @@
             padding: 15px 12px;
             text-align: left;
             color: var(--text-primary);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .data-table th {
@@ -337,7 +492,7 @@
         }
         
         .loading-skeleton {
-            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background: linear-gradient(90deg, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.05) 75%);
             background-size: 200% 100%;
             animation: loading 1.5s infinite;
             border-radius: 8px;
@@ -354,27 +509,43 @@
             grid-column: 1 / -1;
         }
 
+        @media (max-width: 960px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+        }
         @media (max-width: 768px) {
             body {
                 padding: 10px;
             }
             .header {
+                position: relative;
                 margin: 10px;
                 padding: 20px;
+                padding-top: 70px;
                 padding-bottom: 20px;
             }
             .header h1 {
                 font-size: 1.8em;
             }
+            .header-controls {
+                position: absolute;
+                top: 20px;
+                right: 10px;
+                transform: none;
+                margin-top: 0;
+            }
+            /*
             .last-updated {
                 position: static;
                 margin-top: 15px;
                 justify-content: center;
             }
+            */
             .dashboard {
                 padding: 0 10px 20px;
             }
-            .kpi-grid, .chart-grid {
+            .chart-grid {
                 grid-template-columns: 1fr;
             }
             .chart-title {
@@ -384,25 +555,36 @@
     </style>
 </head>
 <body>
+    <div class="background-decor"></div>
     <div class="header fade-in">
         <h1><i class="fas fa-chart-line"></i> Apple empire inventory Dashboard</h1>
+        <div class="header-controls">
+            <button id="theme-toggle"><i class="fas fa-desktop"></i></button>
+            <div id="theme-menu" class="theme-menu hidden">
+                <button data-theme="light"><i class="fas fa-sun"></i> Light</button>
+                <button data-theme="dark"><i class="fas fa-moon"></i> Dark</button>
+                <button data-theme="system" class="active"><i class="fas fa-desktop"></i> System</button>
+            </div>
+        </div>
         <p class="header-subtitle">Real-time insights and analytics for daily operations</p>
+        <!--
         <div class="last-updated">
             <span id="last-updated">Connecting...</span>
         </div>
+        -->
     </div>
 
     <div class="dashboard">
         <!-- Enhanced KPI Section -->
         <div class="kpi-grid fade-in">
-            <div class="kpi-card expandable-card" id="total-devices-card">
+            <div class="kpi-card" id="total-devices-card">
                 <div class="kpi-header">
                     <div class="kpi-title">Total Devices</div>
                     <div class="kpi-icon"><i class="fas fa-mobile-alt"></i></div>
                 </div>
                 <div class="kpi-value"><div class="loading-skeleton" style="height: 40px; width: 60%;"></div></div>
                 <div class="kpi-trend"><span>Live count</span></div>
-                <div class="devices-detail" id="devices-detail">
+                <div class="expandable-detail" id="devices-detail">
                     <div class="loading-skeleton" style="height: 150px;"></div>
                 </div>
             </div>
@@ -413,26 +595,49 @@
                 </div>
                 <div class="kpi-value"><div class="loading-skeleton" style="height: 40px; width: 50%;"></div></div>
                 <div class="kpi-trend"><span>In stock</span></div>
-            </div>
-            <div class="kpi-card" id="weekly-sales-card">
-                <div class="kpi-header">
-                    <div class="kpi-title">Past 7 Days</div>
-                    <div class="kpi-icon"><i class="fas fa-calendar-week"></i></div>
+                 <div class="expandable-detail" id="gadgets-detail">
+                    <div class="loading-skeleton" style="height: 150px;"></div>
                 </div>
-                <div class="kpi-value"><div class="loading-skeleton" style="height: 40px; width: 40%;"></div></div>
-                <div class="kpi-trend" id="weekly-trend"><span>Calculating...</span></div>
             </div>
-            <div class="kpi-card" id="monthly-sales-card">
-                <div class="kpi-header">
-                    <div class="kpi-title">Past 30 Days</div>
-                    <div class="kpi-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div class="kpi-column">
+                <div class="kpi-card" id="weekly-sales-card">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Weekly Sales</div>
+                        <div class="kpi-icon"><i class="fas fa-calendar-week"></i></div>
+                    </div>
+                    <div class="kpi-value"><div class="loading-skeleton" style="height: 40px; width: 40%;"></div></div>
+                    <div class="kpi-trend" id="weekly-trend"><span>Past 7 days</span></div>
                 </div>
-                <div class="kpi-value"><div class="loading-skeleton" style="height: 40px; width: 55%;"></div></div>
-                <div class="kpi-trend" id="monthly-trend"><span>Calculating...</span></div>
+                <div class="kpi-card" id="avg-sales-card">
+                     <div class="kpi-header">
+                        <div class="kpi-title">Avg. Daily Sales</div>
+                        <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
+                    </div>
+                    <div class="kpi-value"><div class="loading-skeleton" style="height: 40px; width: 50%;"></div></div>
+                    <div class="kpi-trend"><span>(Past 30 days)</span></div>
+                </div>
+            </div>
+            <div class="kpi-column">
+                <div class="kpi-card" id="monthly-sales-card">
+                    <div class="kpi-header">
+                        <div class="kpi-title">Monthly Sales</div>
+                        <div class="kpi-icon"><i class="fas fa-calendar-alt"></i></div>
+                    </div>
+                    <div class="kpi-value"><div class="loading-skeleton" style="height: 40px; width: 55%;"></div></div>
+                    <div class="kpi-trend" id="monthly-trend"><span>Past 30 days</span></div>
+                </div>
+                <div class="kpi-card" id="avg-monthly-sales-card">
+                     <div class="kpi-header">
+                        <div class="kpi-title">Avg. Monthly Sales</div>
+                        <div class="kpi-icon"><i class="fas fa-chart-pie"></i></div>
+                    </div>
+                    <div class="kpi-value"><div class="loading-skeleton" style="height: 40px; width: 40%;"></div></div>
+                    <div class="kpi-trend"><span>(All-time average)</span></div>
+                </div>
             </div>
         </div>
 
-        <!-- Enhanced Chart Section with fixed height and scrolling -->
+        <!-- Main Analytics Section (Charts) -->
         <div class="chart-grid fade-in">
             <div class="chart-container fixed-height-card" id="daily-sales-container">
                 <div class="chart-header">
@@ -442,7 +647,7 @@
                     </h3>
                     <div class="chart-controls">
                          <button class="btn" id="prev-day-btn"><i class="fas fa-chevron-left"></i></button>
-                         <span id="date-display-label" style="color: white; font-weight: 500;">Today</span>
+                         <span id="date-display-label" style="color: var(--text-primary); font-weight: 500;">Today</span>
                          <button class="btn" id="next-day-btn"><i class="fas fa-chevron-right"></i></button>
                     </div>
                 </div>
@@ -458,8 +663,6 @@
                 <div class="chart-content" id="low-stock-content"><div class="loading-skeleton" style="height: 200px;"></div></div>
             </div>
         </div>
-
-        <!-- Sales Analytics Section -->
         <div class="chart-grid fade-in">
             <div class="chart-container fixed-height-card">
                 <h3 class="chart-title"><i class="fas fa-chart-pie"></i> Sales by Brand</h3>
@@ -470,7 +673,6 @@
                 <div class="chart-content"><canvas id="busiest-day-chart"></canvas></div>
             </div>
         </div>
-        
         <div class="chart-container full-width fade-in fixed-height-card">
              <h3 class="chart-title"><i class="fas fa-tachometer-alt"></i> Sales Velocity & Trends (Last 30 Days)</h3>
              <div class="chart-content"><canvas id="sales-trend-chart"></canvas></div>
@@ -490,10 +692,8 @@
                 sales: 'Sales!A:G'
             },
             COLUMNS: {
-                S_BARCODE: 2,
-                S_PRODUCT_INFO: 3,
-                S_CUSTOMER: 4,
-                S_DATE: 7
+                S_PRODUCT_INFO: 3, S_DATE: 7,
+                D_DATE_ADDED: 8, S_CUSTOMER: 4
             }
         };
 
@@ -501,7 +701,9 @@
         const state = {
             data: { devices: [], gadgets: [], sales: [] },
             charts: {},
-            currentDateOffset: 0
+            currentDateOffset: 0,
+            isLightMode: false,
+            themeChoice: 'system'
         };
 
         // --- DATA MANAGER ---
@@ -540,12 +742,16 @@
             const date = new Date(Date.UTC(year, month, day));
             return (isNaN(date.getTime())) ? null : date;
         };
-        const animateValue = (element, start, end, duration) => {
+        const animateValue = (element, start, end, duration, decimals = 0) => {
             const startTime = Date.now();
             const tick = () => {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                element.textContent = Math.floor(start + (end - start) * progress).toLocaleString();
+                const current = start + (end - start) * progress;
+                element.textContent = current.toLocaleString(undefined, {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                });
                 if (progress < 1) requestAnimationFrame(tick);
             };
             tick();
@@ -557,7 +763,7 @@
             renderTables();
             renderDailySales();
             renderAllCharts();
-            document.getElementById('last-updated').innerHTML = `<div class="status-indicator"></div> Last updated: ${new Date().toLocaleTimeString()}`;
+            // document.getElementById('last-updated').innerHTML = `<div class="status-indicator"></div> Last updated: ${new Date().toLocaleTimeString()}`;
         }
 
         function updateKPICards() {
@@ -574,44 +780,68 @@
             const prevWeeklySales = sales.filter(r => { const d = parseDate(r[CONFIG.COLUMNS.S_DATE - 1]); return d && d >= prevWeekStart && d < weekAgo; }).length;
             const monthlySales = sales.filter(r => { const d = parseDate(r[CONFIG.COLUMNS.S_DATE - 1]); return d && d >= monthAgo && d <= today; }).length;
             const prevMonthlySales = sales.filter(r => { const d = parseDate(r[CONFIG.COLUMNS.S_DATE - 1]); return d && d >= prevMonthStart && d < monthAgo; }).length;
+            
+            const avgDailySales = monthlySales / 30;
+            const monthlySalesData = sales.reduce((acc, row) => {
+                const saleDate = parseDate(row[CONFIG.COLUMNS.S_DATE - 1]);
+                if (saleDate) {
+                    const monthKey = `${saleDate.getUTCFullYear()}-${String(saleDate.getUTCMonth() + 1).padStart(2, '0')}`;
+                    acc[monthKey] = (acc[monthKey] || 0) + 1;
+                }
+                return acc;
+            }, {});
+            const monthlyValues = Object.values(monthlySalesData);
+            const averageMonthlySales = monthlyValues.length > 0 ? monthlyValues.reduce((sum, count) => sum + count, 0) / monthlyValues.length : 0;
 
             animateValue(document.querySelector('#total-devices-card .kpi-value'), 0, totalDevices, 1500);
             animateValue(document.querySelector('#total-gadgets-card .kpi-value'), 0, totalGadgets, 1500);
             animateValue(document.querySelector('#weekly-sales-card .kpi-value'), 0, weeklySales, 1500);
             animateValue(document.querySelector('#monthly-sales-card .kpi-value'), 0, monthlySales, 1500);
-
+            animateValue(document.querySelector('#avg-sales-card .kpi-value'), 0, avgDailySales, 1500, 1);
+            animateValue(document.querySelector('#avg-monthly-sales-card .kpi-value'), 0, averageMonthlySales, 1500, 1);
+            
             const weeklyTrendValue = prevWeeklySales > 0 ? ((weeklySales - prevWeeklySales) / prevWeeklySales * 100) : (weeklySales > 0 ? 100 : 0);
             const weeklyTrendEl = document.getElementById('weekly-trend');
-            weeklyTrendEl.innerHTML = `<i class="fas fa-arrow-${weeklyTrendValue >= 0 ? 'up' : 'down'}"></i> ${weeklyTrendValue.toFixed(0)}% vs prev. week`;
+            weeklyTrendEl.innerHTML = `<i class="fas fa-arrow-${weeklyTrendValue >= 0 ? 'up' : 'down'}"></i> ${weeklyTrendValue.toFixed(0)}% vs prev 7 days`;
             weeklyTrendEl.className = `kpi-trend ${weeklyTrendValue >= 0 ? 'trend-up' : 'trend-down'}`;
             
             const monthlyTrendValue = prevMonthlySales > 0 ? ((monthlySales - prevMonthlySales) / prevMonthlySales * 100) : (monthlySales > 0 ? 100 : 0);
             const monthlyTrendEl = document.getElementById('monthly-trend');
-            monthlyTrendEl.innerHTML = `<i class="fas fa-arrow-${monthlyTrendValue >= 0 ? 'up' : 'down'}"></i> ${monthlyTrendValue.toFixed(0)}% vs prev. 30 days`;
+            monthlyTrendEl.innerHTML = `<i class="fas fa-arrow-${monthlyTrendValue >= 0 ? 'up' : 'down'}"></i> ${monthlyTrendValue.toFixed(0)}% vs prev 30 days`;
             monthlyTrendEl.className = `kpi-trend ${monthlyTrendValue >= 0 ? 'trend-up' : 'trend-down'}`;
 
-            // NEW: Call the function to populate the expandable detail area
+            // CORRECTED: Moved these calls here to ensure they run after data is loaded.
             updateDevicesDetail();
+            updateGadgetsDetail();
         }
-
+        
         function updateDevicesDetail() {
             const { devices } = state.data;
             const detailContainer = document.getElementById('devices-detail');
-            const modelCounts = devices.reduce((acc, row) => {
-                if (row && row[1]) { acc[row[1]] = (acc[row[1]] || 0) + 1; }
-                return acc;
-            }, {});
-
+            const modelCounts = devices.reduce((acc, row) => { if (row && row[1]) { acc[row[1]] = (acc[row[1]] || 0) + 1; } return acc; }, {});
             const sortedModels = Object.entries(modelCounts).sort((a, b) => b[1] - a[1]);
-
             if (sortedModels.length > 0) {
                 let html = '';
-                sortedModels.forEach(([model, count]) => {
-                    html += `<div class="device-item"><span class="device-model">${model}</span><span class="device-count">${count}</span></div>`;
+                sortedModels.forEach(([model, count]) => { html += `<div class="detail-item"><span class="item-name">${model}</span><span class="item-count">${count}</span></div>`; });
+                detailContainer.innerHTML = html;
+            } else {
+                detailContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No devices in stock.</p>';
+            }
+        }
+
+        function updateGadgetsDetail() {
+            const { gadgets } = state.data;
+            const detailContainer = document.getElementById('gadgets-detail');
+            const sortedGadgets = [...gadgets].sort((a, b) => (parseInt(b[3], 10) || 0) - (parseInt(a[3], 10) || 0));
+            if (sortedGadgets.length > 0) {
+                let html = '';
+                sortedGadgets.forEach(row => {
+                    const name = `${row[2] || ''} ${row[1] || 'Unknown Gadget'}`.trim();
+                    html += `<div class="detail-item"><span class="item-name">${name}</span><span class="item-count">${row[3] || 0}</span></div>`;
                 });
                 detailContainer.innerHTML = html;
             } else {
-                detailContainer.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.7); padding: 20px;">No devices in stock.</p>';
+                detailContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No gadgets in stock.</p>';
             }
         }
 
@@ -623,43 +853,67 @@
             const targetDate = new Date();
             targetDate.setUTCDate(targetDate.getUTCDate() + state.currentDateOffset);
             targetDate.setUTCHours(0,0,0,0);
-            if (state.currentDateOffset === 0) dateLabel.textContent = "Today";
-            else if (state.currentDateOffset === -1) dateLabel.textContent = "Yesterday";
-            else dateLabel.textContent = targetDate.toLocaleDateString();
+            
             const dailySales = state.data.sales.filter(r => { const d = parseDate(r[CONFIG.COLUMNS.S_DATE - 1]); return d && d.getTime() === targetDate.getTime(); });
+            const salesCount = dailySales.length;
+            
+            countLabel.textContent = salesCount;
 
-            countLabel.textContent = dailySales.length;
+            let displayString;
+            const dayOfMonth = targetDate.getUTCDate();
+
+            if (state.currentDateOffset === 0) {
+                displayString = "Today";
+            } else if (state.currentDateOffset === -1) {
+                displayString = "Yesterday";
+            } else {
+                const dayOfWeek = targetDate.toLocaleDateString(undefined, { weekday: 'long' });
+                displayString = `${dayOfWeek} ${dayOfMonth}`;
+            }
+
+            dateLabel.textContent = displayString;
 
             if (dailySales.length > 0) {
                  let tableHTML = '<table class="data-table"><thead><tr><th>Product</th><th>Customer</th></tr></thead><tbody>';
                  dailySales.forEach(row => { tableHTML += `<tr><td>${row[CONFIG.COLUMNS.S_PRODUCT_INFO - 1] || 'N/A'}</td><td>${row[CONFIG.COLUMNS.S_CUSTOMER - 1] || 'Walk-in'}</td></tr>`; });
                  container.innerHTML = tableHTML + '</tbody></table>';
             } else {
-                 container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.7); padding: 20px;">No sales for this day.</p>';
+                 container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No sales for this day.</p>';
             }
         }
         
         function renderAllCharts() {
             const { sales } = state.data;
+            const textColor = state.isLightMode ? '#2c3e50' : 'white';
+            const gridColor = state.isLightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+
             const brandSales = sales.reduce((acc, row) => { const p = row[CONFIG.COLUMNS.S_PRODUCT_INFO - 1]; if(p) { const b = p.split(' ')[0]; acc[b] = (acc[b] || 0) + 1; } return acc; }, {});
             const sortedBrands = Object.entries(brandSales).sort((a,b) => b[1] - a[1]).slice(0, 7);
             const brandCtx = document.getElementById('sales-by-brand-chart')?.getContext('2d');
             if(brandCtx) {
                 if (state.charts.brandChart) state.charts.brandChart.destroy();
-                state.charts.brandChart = new Chart(brandCtx, { type: 'doughnut', data: { labels: sortedBrands.map(b => b[0]), datasets: [{ data: sortedBrands.map(b => b[1]), backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: 'white', padding: 20, usePointStyle: true } } } } });
+                const mutedColors = [ 'rgba(133, 161, 177, 0.8)', 'rgba(169, 196, 212, 0.8)', 'rgba(195, 216, 227, 0.8)', 'rgba(224, 235, 240, 0.8)', 'rgba(185, 176, 162, 0.8)', 'rgba(211, 203, 191, 0.8)', 'rgba(230, 224, 217, 0.8)' ];
+                state.charts.brandChart = new Chart(brandCtx, { type: 'doughnut', data: { labels: sortedBrands.map(b => b[0]), datasets: [{ data: sortedBrands.map(b => b[1]), backgroundColor: mutedColors, borderWidth: 0, hoverOffset: 15 }] }, options: { responsive: true, maintainAspectRatio: false, animation: { animateScale: true, animateRotate: true }, plugins: { legend: { position: 'bottom', labels: { color: textColor, padding: 20, usePointStyle: true } } } } });
             }
+
             const dayCounts = new Array(7).fill(0);
             sales.forEach(row => { const d = parseDate(row[CONFIG.COLUMNS.S_DATE - 1]); if (d) dayCounts[d.getUTCDay()]++; });
             const dayCtx = document.getElementById('busiest-day-chart')?.getContext('2d');
             if(dayCtx) {
                 if (state.charts.dayChart) state.charts.dayChart.destroy();
-                state.charts.dayChart = new Chart(dayCtx, { type: 'bar', data: { labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], datasets: [{ label: 'Sales', data: dayCounts, backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: 'white', precision: 0 }, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { ticks: { color: 'white' }, grid: { display: false } } } } });
+                const barHoverColor = state.isLightMode ? 'rgba(44, 62, 80, 1)' : 'rgba(255, 255, 255, 1)';
+                state.charts.dayChart = new Chart(dayCtx, { type: 'bar', data: { labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], datasets: [{ label: 'Sales', data: dayCounts, backgroundColor: state.isLightMode ? 'rgba(44, 62, 80, 0.8)' : 'rgba(255, 255, 255, 0.8)', hoverBackgroundColor: barHoverColor, borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 1000, easing: 'easeOutBounce' }, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: textColor, precision: 0 }, grid: { color: gridColor } }, x: { ticks: { color: textColor }, grid: { display: false } } } } });
             }
+            
             const trendSales = sales.reduce((acc, row) => { const d = parseDate(row[CONFIG.COLUMNS.S_DATE - 1]); if (d) { const k = d.toISOString().split('T')[0]; acc[k] = (acc[k] || 0) + 1; } return acc; }, {});
             const trendCtx = document.getElementById('sales-trend-chart')?.getContext('2d');
             if(trendCtx) {
                  if (state.charts.trendChart) state.charts.trendChart.destroy();
-                 state.charts.trendChart = new Chart(trendCtx, { type: 'line', data: { labels: Object.keys(trendSales).sort(), datasets: [{ label: 'Sales', data: Object.values(trendSales), borderColor: '#00f2fe', backgroundColor: 'rgba(0, 242, 254, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { type: 'time', time: { unit: 'day' }, ticks: { color: 'white' }, grid: { display: false } } } } });
+
+                 const borderColor = state.isLightMode ? 'rgba(44, 62, 80, 0.8)' : 'rgba(255, 255, 255, 0.8)';
+                 const backgroundColor = state.isLightMode ? 'rgba(44, 62, 80, 0.1)' : 'rgba(255, 255, 255, 0.1)';
+
+                 state.charts.trendChart = new Chart(trendCtx, { type: 'line', data: { labels: Object.keys(trendSales).sort(), datasets: [{ label: 'Sales', data: Object.values(trendSales), borderColor: borderColor, backgroundColor: backgroundColor, fill: true, tension: 0.4, pointRadius: 2, pointHoverRadius: 8, pointHitRadius: 10 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: textColor }, grid: { color: gridColor } }, x: { type: 'time', time: { unit: 'day' }, ticks: { color: textColor }, grid: { display: false } } } } });
             }
         }
         
@@ -678,20 +932,77 @@
                  lowStockModels.forEach(([model, count]) => { tableHTML += `<tr><td>${model}</td><td><strong>${count}</strong></td></tr>`; });
                  lowStockContainer.innerHTML = tableHTML + '</tbody></table>';
             } else {
-                lowStockContainer.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.7); padding: 20px;">No low stock items.</p>';
+                lowStockContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No low stock items.</p>';
             }
         }
 
-        async function main() {
-            // Setup expandable card listener
-            document.getElementById('total-devices-card').addEventListener('click', function(e) {
-                // Prevent click event from bubbling up from the detail section
-                if (e.target.closest('.devices-detail')) return;
-                
-                this.classList.toggle('expanded');
-                document.getElementById('devices-detail').classList.toggle('show');
+        function applyTheme(choice) {
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const themeIcon = document.querySelector('#theme-toggle i');
+            
+            document.body.classList.remove('light-mode'); // Reset first
+
+            if (choice === 'light') {
+                state.isLightMode = true;
+                document.body.classList.add('light-mode');
+                themeIcon.className = 'fas fa-sun';
+            } else if (choice === 'dark') {
+                state.isLightMode = false;
+                themeIcon.className = 'fas fa-moon';
+            } else { // system
+                state.isLightMode = !systemPrefersDark;
+                if (state.isLightMode) {
+                    document.body.classList.add('light-mode');
+                }
+                themeIcon.className = 'fas fa-desktop';
+            }
+
+            document.querySelectorAll('#theme-menu button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === choice);
             });
 
+            renderAllCharts();
+        }
+
+        function setupTheme() {
+            state.themeChoice = localStorage.getItem('themeChoice') || 'system';
+
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const themeMenu = document.getElementById('theme-menu');
+
+            themeToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                themeMenu.classList.toggle('hidden');
+            });
+
+            document.querySelectorAll('#theme-menu button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const newChoice = button.dataset.theme;
+                    state.themeChoice = newChoice;
+                    localStorage.setItem('themeChoice', newChoice);
+                    applyTheme(newChoice);
+                    themeMenu.classList.add('hidden');
+                });
+            });
+
+            window.addEventListener('click', (e) => {
+                if (!themeMenu.contains(e.target) && !themeToggleBtn.contains(e.target)) {
+                    themeMenu.classList.add('hidden');
+                }
+            });
+            
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if (state.themeChoice === 'system') {
+                    applyTheme('system');
+                }
+            });
+
+            applyTheme(state.themeChoice);
+        }
+
+        async function main() {
+            setupTheme();
+            
             document.getElementById('prev-day-btn').addEventListener('click', () => { if (state.currentDateOffset > -30) { state.currentDateOffset--; renderDailySales(); } });
             document.getElementById('next-day-btn').addEventListener('click', () => { if (state.currentDateOffset < 0) { state.currentDateOffset++; renderDailySales(); } });
             
@@ -700,7 +1011,7 @@
                     await dataManager.refreshAll();
                     updateAllVisuals();
                 } catch (error) {
-                    document.getElementById('last-updated').textContent = 'Connection Error';
+                    // document.getElementById('last-updated').textContent = 'Connection Error';
                 }
             };
             
@@ -712,3 +1023,5 @@
     </script>
 </body>
 </html>
+
+
